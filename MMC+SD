@@ -1,0 +1,20 @@
+Problem:
+When having the same image on both a MMC and SD card, Linux can't differ between them.
+
+Solution:
+give the partitions new IDs
+1. vfat
+dd if=/dev/path_to_vfat of=/path_to_file bs=512 count=1			; dump the first 512 byte of the vfat into a file
+shed /path_to_file													; hex edit ID at position 0x43-0x46
+dd of=/dev/path_to_vfat if=/path_to_file bs=512 count=1			; write file back to vfat
+
+2. ext4
+uuidgen																; generate new UUID (or modify the old just a little bit)
+tune2fs /dev/path_to_ext4 -U new_UUID
+
+3. mount /dev/path_to_ext4  /mntpt								; mount ext4 to modify fstab
+4. nano /mntpt/etc/fstab											; edit  file system IDs
+5. umount /dev/path_to_ext4
+6. mount /dev/path_to_vfat /mntpt
+7. nano /mntpt/boot.ini												; change UUID to new ext4 UUID
+
